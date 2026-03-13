@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --card: 210 20% 98%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 140 90% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 140 90% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 140 90% 45%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 16% 47%;
+    --sidebar-primary: 140 90% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 140 80% 92%;
+    --sidebar-accent-foreground: 140 60% 20%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 82 85% 80%;
+
+    --mint: 140 90% 45%;
+    --mint-soft: 140 70% 92%;
+    --mint-vivid: 140 95% 40%;
+    --surface-raised: 210 20% 98%;
+    --shadow-card: 215 25% 27% / 0.05;
+    --shadow-card-hover: 215 25% 27% / 0.1;
+    --glass-bg: 0 0% 100% / 0.7;
+    --verified: 142 71% 45%;
+  }
+
+  .dark {
+    --background: 222 47% 5%;
+    --foreground: 210 20% 95%;
+    --card: 222 40% 8%;
+    --card-foreground: 210 20% 95%;
+    --popover: 222 40% 8%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 140 90% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 30% 12%;
+    --secondary-foreground: 210 20% 95%;
+    --muted: 222 30% 12%;
+    --muted-foreground: 215 16% 55%;
+    --accent: 140 90% 45%;
+    --accent-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 20% 95%;
+    --border: 222 30% 18%;
+    --input: 222 30% 18%;
+    --ring: 140 90% 45%;
+    --sidebar-background: 222 47% 6%;
+    --sidebar-foreground: 215 16% 65%;
+    --sidebar-primary: 140 90% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 140 50% 15%;
+    --sidebar-accent-foreground: 140 90% 45%;
+    --sidebar-border: 222 30% 15%;
+    --sidebar-ring: 140 90% 45%;
+    --mint: 140 90% 45%;
+    --mint-soft: 140 50% 15%;
+    --mint-vivid: 140 95% 40%;
+    --surface-raised: 222 40% 7%;
+    --shadow-card: 0 0% 0% / 0.3;
+    --shadow-card-hover: 0 0% 0% / 0.4;
+    --glass-bg: 222 47% 5% / 0.7;
+    --verified: 142 71% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .shadow-card {
+    box-shadow: 0 1px 3px hsl(var(--shadow-card)), 0 1px 2px hsl(var(--shadow-card));
+  }
+  .shadow-card-hover {
+    box-shadow: 0 8px 25px hsl(var(--shadow-card-hover)), 0 4px 10px hsl(var(--shadow-card));
+  }
+  .glass {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .progress-gradient {
+    background: linear-gradient(90deg, hsl(140 90% 50%), hsl(140 90% 38%));
+  }
+
+  /* Markdown content styles */
+  .prose-devlog h1 { @apply text-xl font-bold text-foreground mt-4 mb-2; }
+  .prose-devlog h2 { @apply text-lg font-semibold text-foreground mt-3 mb-1.5; }
+  .prose-devlog h3 { @apply text-base font-semibold text-foreground mt-2 mb-1; }
+  .prose-devlog p { @apply text-sm leading-relaxed text-foreground mb-2; }
+  .prose-devlog ul { @apply list-disc list-inside text-sm text-foreground mb-2 space-y-0.5; }
+  .prose-devlog ol { @apply list-decimal list-inside text-sm text-foreground mb-2 space-y-0.5; }
+  .prose-devlog code { @apply text-xs bg-secondary text-foreground px-1.5 py-0.5 rounded font-mono; }
+  .prose-devlog pre { @apply bg-secondary rounded-lg p-3 mb-2 overflow-x-auto; }
+  .prose-devlog pre code { @apply bg-transparent p-0; }
+  .prose-devlog blockquote { @apply border-l-2 border-primary pl-3 italic text-muted-foreground text-sm mb-2; }
+  .prose-devlog strong { @apply font-semibold; }
+  .prose-devlog a { @apply text-success underline; }
+}
