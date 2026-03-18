@@ -1,4 +1,4 @@
-const CACHE = 'growlog-v1';
+const CACHE = 'growlog-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
