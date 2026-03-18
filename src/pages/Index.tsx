@@ -9,6 +9,7 @@ import { PublicProfile } from "@/components/PublicProfile";
 import { ExploreView } from "@/components/ExploreView";
 import { UserProfileView } from "@/components/UserProfileView";
 import { StatsView } from "@/components/StatsView";
+import { SettingsView } from "@/components/SettingsView";
 import { OnboardingModal } from "@/components/OnboardingModal";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +21,7 @@ const Index = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [showExplore, setShowExplore] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [viewingUsername, setViewingUsername] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem("growlog-onboarding-done"));
@@ -40,6 +42,7 @@ const Index = () => {
     setShowProfile(false);
     setShowExplore(false);
     setShowStats(false);
+    setShowSettings(false);
     setViewingUsername(null);
     setActiveProjectId(null);
   };
@@ -68,6 +71,12 @@ const Index = () => {
     setSidebarOpen(false);
   };
 
+  const handleOpenSettings = () => {
+    resetViews();
+    setShowSettings(true);
+    setSidebarOpen(false);
+  };
+
   const handleViewProfile = (username: string) => {
     setViewingUsername(username);
   };
@@ -83,6 +92,9 @@ const Index = () => {
   const renderContent = () => {
     if (viewingUsername) {
       return <UserProfileView username={viewingUsername} onBack={() => setViewingUsername(null)} />;
+    }
+    if (showSettings && profile) {
+      return <SettingsView profile={profile} onUpdateProfile={updateProfile} />;
     }
     if (showStats) {
       return <StatsView projects={projects} />;
@@ -124,6 +136,7 @@ const Index = () => {
           onOpenProfile={handleOpenProfile}
           onOpenStats={handleOpenStats}
           onOpenExplore={handleOpenExplore}
+          onOpenSettings={handleOpenSettings}
         />
       </div>
 
@@ -138,7 +151,7 @@ const Index = () => {
             <Menu className="w-5 h-5" strokeWidth={1.5} />
           </button>
           <span className="text-xs text-muted-foreground font-medium truncate">
-            {viewingUsername ? `@${viewingUsername}` : showStats ? "Estadísticas" : showExplore ? "Explorar" : showProfile ? "Mi Perfil" : activeProject ? `${activeProject.emoji} ${activeProject.name}` : "Dashboard"}
+            {viewingUsername ? `@${viewingUsername}` : showSettings ? "Configuración" : showStats ? "Estadísticas" : showExplore ? "Explorar" : showProfile ? "Mi Perfil" : activeProject ? `${activeProject.emoji} ${activeProject.name}` : "Dashboard"}
           </span>
         </header>
 

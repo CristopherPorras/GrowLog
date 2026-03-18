@@ -24,6 +24,14 @@ export interface UserProfile {
   username: string;
   display_name: string;
   bio: string;
+  role?: string;
+  location?: string;
+  website?: string;
+  github?: string;
+  linkedin?: string;
+  twitter?: string;
+  avatar_color?: string;
+  is_public?: boolean;
 }
 
 export function getToday(): string {
@@ -152,20 +160,40 @@ export function useProfile() {
 
   useEffect(() => {
     if (!user) return;
+
     supabase
       .from("profiles")
-      .select("username, display_name, bio")
+      .select("username, display_name, bio, role, location, website, github, linkedin, twitter, avatar_color, is_public")
       .eq("user_id", user.id)
-      .single()
-      .then(({ data }) => {
-        if (data) setProfile(data as UserProfile);
+      .maybeSingle()
+      .then(async ({ data }) => {
+        if (data) {
+          setProfile(data as UserProfile);
+        } else {
+          // Auto-create profile from auth data if it doesn't exist
+          const emailPrefix = user.email?.split("@")[0] ?? "user";
+          const autoUsername = emailPrefix.replace(/[^a-z0-9]/gi, "").toLowerCase().slice(0, 20) || `user${Date.now().toString().slice(-4)}`;
+          const displayName = (user.user_metadata?.full_name as string) ?? emailPrefix;
+          const newProfile: Partial<UserProfile> & { user_id: string } = {
+            user_id: user.id,
+            username: autoUsername,
+            display_name: displayName,
+            bio: "",
+          };
+          const { data: created } = await supabase.from("profiles").upsert(newProfile).select().maybeSingle();
+          if (created) setProfile(created as UserProfile);
+        }
       });
   }, [user]);
 
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
     if (!user) return;
-    await supabase.from("profiles").update(updates).eq("user_id", user.id);
-    setProfile((prev) => prev ? { ...prev, ...updates } : null);
+    // Validate username if included
+    if (updates.username) {
+      updates.username = updates.username.replace(/[^a-z0-9_-]/gi, "").toLowerCase().slice(0, 30);
+    }
+    await supabase.from("profiles").upsert({ user_id: user.id, ...updates });
+    setProfile((prev) => (prev ? { ...prev, ...updates } : null));
   }, [user]);
 
   return { profile, updateProfile };
@@ -217,8 +245,7 @@ export async function fetchAllPublicProfiles(): Promise<{ profiles: PublicProfil
         dayCount: days,
         projectCount: userProjects.length,
       };
-    })
-    .filter((p: PublicProfileSummary) => p.username);
+    });
 
   return { profiles: result, error: null };
 }

@@ -1,4 +1,4 @@
-import { BookOpen, Flame, Plus, Code2, LogOut, Sun, Moon, Compass, BarChart2 } from "lucide-react";
+import { BookOpen, Flame, Plus, Code2, LogOut, Sun, Moon, Compass, BarChart2, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/hooks/useSupabaseProjects";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,11 +12,12 @@ interface AppSidebarProps {
   onOpenProfile: () => void;
   onOpenExplore: () => void;
   onOpenStats: () => void;
+  onOpenSettings: () => void;
 }
 
 const LEVEL_TITLES = ["", "Principiante", "Aprendiz", "Estudiante", "Constante", "Dedicado", "Experto", "Maestro"];
 
-export function AppSidebar({ projects, activeProjectId, onSelectProject, onNewProject, onOpenProfile, onOpenExplore, onOpenStats }: AppSidebarProps) {
+export function AppSidebar({ projects, activeProjectId, onSelectProject, onNewProject, onOpenProfile, onOpenExplore, onOpenStats, onOpenSettings }: AppSidebarProps) {
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
@@ -141,6 +142,13 @@ export function AppSidebar({ projects, activeProjectId, onSelectProject, onNewPr
         >
           <BookOpen className="w-4 h-4" strokeWidth={1.5} />
           Mi Perfil
+        </button>
+        <button
+          onClick={onOpenSettings}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-all duration-200"
+        >
+          <Settings className="w-4 h-4" strokeWidth={1.5} />
+          Configuración
         </button>
         <button
           onClick={toggleTheme}
