@@ -1,7 +1,8 @@
-import { BookOpen, Flame, Plus, Code2, LogOut } from "lucide-react";
+import { BookOpen, Flame, Plus, Code2, LogOut, Sun, Moon, Compass, BarChart2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/hooks/useSupabaseProjects";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 
 interface AppSidebarProps {
   projects: Project[];
@@ -9,21 +10,24 @@ interface AppSidebarProps {
   onSelectProject: (id: string | null) => void;
   onNewProject: () => void;
   onOpenProfile: () => void;
+  onOpenExplore: () => void;
+  onOpenStats: () => void;
 }
 
-export function AppSidebar({ projects, activeProjectId, onSelectProject, onNewProject, onOpenProfile }: AppSidebarProps) {
+export function AppSidebar({ projects, activeProjectId, onSelectProject, onNewProject, onOpenProfile, onOpenExplore, onOpenStats }: AppSidebarProps) {
   const { signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <aside className="w-60 shrink-0 border-r border-border bg-sidebar h-screen sticky top-0 flex flex-col">
+    <aside className="w-64 shrink-0 border-r border-border bg-sidebar h-screen flex flex-col">
       <div className="px-5 py-6 border-b border-sidebar-border">
         <button onClick={() => onSelectProject(null)} className="flex items-center gap-2.5 group">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
             <Code2 className="w-4 h-4 text-primary-foreground" strokeWidth={1.5} />
           </div>
           <div>
-            <span className="text-sm font-semibold text-foreground tracking-tight">DevLog</span>
-            <p className="text-[10px] text-muted-foreground leading-none mt-0.5">& Learn</p>
+            <span className="text-sm font-semibold text-foreground tracking-tight">GrowLog</span>
+            <p className="text-[10px] text-muted-foreground leading-none mt-0.5">bitácoras verificadas</p>
           </div>
         </button>
       </div>
@@ -64,9 +68,21 @@ export function AppSidebar({ projects, activeProjectId, onSelectProject, onNewPr
           <BookOpen className="w-4 h-4" strokeWidth={1.5} />
           Mi Perfil Público
         </button>
+        <button onClick={onOpenStats} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-300">
+          <BarChart2 className="w-4 h-4" strokeWidth={1.5} />
+          Estadísticas
+        </button>
+        <button onClick={onOpenExplore} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-300">
+          <Compass className="w-4 h-4" strokeWidth={1.5} />
+          Explorar perfiles
+        </button>
         <button onClick={onNewProject} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-primary text-primary-foreground text-[13px] font-medium transition-all duration-300 hover:shadow-card-hover hover:scale-[1.01] active:scale-[0.98]">
           <Plus className="w-4 h-4" strokeWidth={1.5} />
           Nuevo Espacio
+        </button>
+        <button onClick={toggleTheme} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-300">
+          {theme === "dark" ? <Sun className="w-4 h-4" strokeWidth={1.5} /> : <Moon className="w-4 h-4" strokeWidth={1.5} />}
+          {theme === "dark" ? "Modo claro" : "Modo oscuro"}
         </button>
         <button onClick={signOut} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-[13px] font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-300">
           <LogOut className="w-4 h-4" strokeWidth={1.5} />

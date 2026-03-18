@@ -7,6 +7,8 @@ export interface Entry {
   text: string;
   date: string;
   created_at: string;
+  ai_title?: string;
+  tags?: string[];
 }
 
 export interface Project {
@@ -25,7 +27,11 @@ export interface UserProfile {
 }
 
 export function getToday(): string {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 export function isToday(dateStr: string): boolean {
@@ -71,6 +77,8 @@ export function useSupabaseProjects() {
         text: e.text,
         date: e.date,
         created_at: e.created_at,
+        ai_title: e.ai_title ?? undefined,
+        tags: e.tags ?? [],
       });
     });
 
@@ -101,10 +109,10 @@ export function useSupabaseProjects() {
     return data.id;
   }, [user, fetchProjects]);
 
-  const addEntry = useCallback(async (projectId: string, text: string) => {
+  const addEntry = useCallback(async (projectId: string, text: string, aiTitle?: string, tags?: string[]) => {
     if (!user) return;
     const today = getToday();
-    
+
     // Check if today's entry exists
     const { data: existing } = await supabase
       .from("entries")
@@ -113,14 +121,18 @@ export function useSupabaseProjects() {
       .eq("date", today)
       .maybeSingle();
 
+    const payload: Record<string, unknown> = { text };
+    if (aiTitle !== undefined) payload.ai_title = aiTitle;
+    if (tags !== undefined) payload.tags = tags;
+
     if (existing) {
-      await supabase.from("entries").update({ text }).eq("id", existing.id);
+      await supabase.from("entries").update(payload).eq("id", existing.id);
     } else {
       await supabase.from("entries").insert({
         project_id: projectId,
         user_id: user.id,
-        text,
         date: today,
+        ...payload,
       });
     }
     await fetchProjects();
@@ -157,6 +169,48 @@ export function useProfile() {
   }, [user]);
 
   return { profile, updateProfile };
+}
+
+export interface PublicProfileSummary {
+  username: string;
+  display_name: string;
+  bio: string;
+  entryCount: number;
+  dayCount: number;
+  projectCount: number;
+}
+
+export async function fetchAllPublicProfiles(): Promise<PublicProfileSummary[]> {
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("username, display_name, bio, user_id")
+    .not("username", "is", null)
+    .limit(60);
+
+  if (!profiles || profiles.length === 0) return [];
+
+  const userIds = profiles.map((p: any) => p.user_id);
+
+  const [{ data: entries }, { data: projects }] = await Promise.all([
+    supabase.from("entries").select("user_id, date").in("user_id", userIds),
+    supabase.from("projects").select("user_id").in("user_id", userIds),
+  ]);
+
+  return profiles
+    .map((profile: any) => {
+      const userEntries = (entries || []).filter((e: any) => e.user_id === profile.user_id);
+      const userProjects = (projects || []).filter((p: any) => p.user_id === profile.user_id);
+      const days = new Set(userEntries.map((e: any) => e.date.slice(0, 10))).size;
+      return {
+        username: profile.username,
+        display_name: profile.display_name ?? profile.username,
+        bio: profile.bio ?? "",
+        entryCount: userEntries.length,
+        dayCount: days,
+        projectCount: userProjects.length,
+      };
+    })
+    .filter((p: PublicProfileSummary) => p.username);
 }
 
 // For public profile page

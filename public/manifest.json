@@ -1,0 +1,19 @@
+{
+  "name": "GrowLog",
+  "short_name": "GrowLog",
+  "description": "Bitácoras de aprendizaje verificadas. Documenta tu crecimiento.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#4ade80",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

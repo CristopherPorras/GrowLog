@@ -71,8 +71,8 @@ const Landing = () => {
               <Code2 className="w-5 h-5 text-primary-foreground" strokeWidth={1.5} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground tracking-tight">DevLog & Learn</h1>
-              <p className="text-xs text-muted-foreground">Prueba de aprendizaje verificada</p>
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">GrowLog</h1>
+              <p className="text-xs text-muted-foreground">Bitácoras de aprendizaje verificadas</p>
             </div>
           </div>
 
