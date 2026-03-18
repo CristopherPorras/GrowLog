@@ -150,7 +150,7 @@ export function StatsView({ projects }: StatsViewProps) {
             />
             <Bar dataKey="entries" radius={[6, 6, 0, 0]}>
               {weeklyData.map((w, i) => (
-                <Cell key={i} fill={w.entries > 0 ? "var(--primary)" : "var(--secondary)"} fillOpacity={w.entries > 0 ? 0.8 : 1} />
+                <Cell key={i} fill={w.entries > 0 ? "hsl(140, 80%, 45%)" : "rgba(74,222,128,0.12)"} />
               ))}
             </Bar>
           </BarChart>
@@ -168,8 +168,8 @@ export function StatsView({ projects }: StatsViewProps) {
             return (
               <div key={d.name} className="flex-1 flex flex-col items-center gap-1">
                 <div
-                  className={`w-full rounded-t-lg transition-all ${isMax ? "bg-primary" : "bg-secondary"}`}
-                  style={{ height }}
+                  className={`w-full rounded-t-lg transition-all`}
+                  style={{ height, background: isMax ? "hsl(140, 80%, 45%)" : "rgba(74,222,128,0.15)" }}
                 />
                 <span className="text-[10px] text-muted-foreground font-medium">{d.name}</span>
                 <span className="text-[10px] text-muted-foreground tabular-nums">{d.entries}</span>

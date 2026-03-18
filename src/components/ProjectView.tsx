@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { Calendar, Flame, Save, Trash2, FileDown, Wand2, Sparkles, X, ChevronDown, ChevronUp, Search, LayoutTemplate } from "lucide-react";
+import { Calendar, Flame, Save, Trash2, FileDown, Wand2, Sparkles, X, ChevronDown, ChevronUp, Search, LayoutTemplate, Zap } from "lucide-react";
+
+const DAILY_PROMPTS = [
+  "¿Qué concepto nuevo entendiste hoy?",
+  "¿Resolviste algún bug interesante? ¿Cómo lo abordaste?",
+  "¿Qué tutorial completaste y qué fue lo más valioso?",
+  "¿Qué construiste hoy? Descríbelo brevemente.",
+  "¿Qué herramienta o librería exploraste por primera vez?",
+  "¿Qué te costó entender y cómo finalmente lo comprendiste?",
+  "¿Qué aprendiste que ya quieres aplicar en un proyecto real?",
+];
 import { getTodayEntry, isToday, type Project } from "@/hooks/useSupabaseProjects";
 import { ActivityHeatmap } from "./ActivityHeatmap";
 import { MarkdownEditor } from "./MarkdownEditor";
@@ -32,6 +42,8 @@ export function ProjectView({ project, onAddEntry, onDelete }: ProjectViewProps)
   const [showPastEntries, setShowPastEntries] = useState(true);
   const [showTemplates, setShowTemplates] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showXP, setShowXP] = useState(false);
+  const [dailyPrompt] = useState(() => DAILY_PROMPTS[new Date().getDay() % DAILY_PROMPTS.length]);
 
   const uniqueDays = new Set(project.entries.map((e) => e.date.slice(0, 10))).size;
   const progress = Math.min(100, Math.round((uniqueDays / project.goal_days) * 100));
@@ -57,6 +69,8 @@ export function ProjectView({ project, onAddEntry, onDelete }: ProjectViewProps)
     if (!text.trim()) return;
     onAddEntry(project.id, text.trim(), savedAiTitle || undefined, tags.length > 0 ? tags : undefined);
     setSaved(true);
+    setShowXP(true);
+    setTimeout(() => setShowXP(false), 2600);
   };
 
   const handleAddTag = (raw: string) => {
@@ -72,6 +86,8 @@ export function ProjectView({ project, onAddEntry, onDelete }: ProjectViewProps)
     try {
       const title = await generateEntryTitle(text);
       setAiTitle(title);
+      setSavedAiTitle(title);
+      setSaved(false);
     } catch (e: any) {
       setAiError(`Error al generar título: ${e?.message ?? "desconocido"}`);
     } finally {
@@ -230,27 +246,19 @@ export function ProjectView({ project, onAddEntry, onDelete }: ProjectViewProps)
           </div>
         )}
 
-        {/* AI generated title */}
+        {/* AI generated title — auto-applied as entry title */}
         {aiTitle && (
-          <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-primary/10 border border-primary/20">
-            <Wand2 className="w-4 h-4 text-primary mt-0.5 shrink-0" strokeWidth={1.5} />
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 border border-primary/20">
+            <Wand2 className="w-4 h-4 text-primary shrink-0" strokeWidth={1.5} />
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-1">Título sugerido por IA</p>
-              <p className="text-sm font-semibold text-foreground">{aiTitle}</p>
-              <button
-                onClick={() => {
-                  const newText = `## ${aiTitle}\n\n${text.replace(/^##[^\n]*\n\n?/, "")}`;
-                  setText(newText);
-                  setSavedAiTitle(aiTitle!);
-                  setSaved(false);
-                  setAiTitle(null);
-                }}
-                className="mt-2 text-[11px] text-primary font-medium hover:underline"
-              >
-                Insertar en la bitácora →
-              </button>
+              <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-0.5">Título de la entrada</p>
+              <p className="text-sm font-semibold text-foreground truncate">{aiTitle}</p>
             </div>
-            <button onClick={() => setAiTitle(null)} className="shrink-0 text-muted-foreground hover:text-foreground">
+            <button
+              onClick={() => { setAiTitle(null); setSavedAiTitle(""); setSaved(false); }}
+              className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+              title="Quitar título"
+            >
               <X className="w-3.5 h-3.5" strokeWidth={2} />
             </button>
           </div>
@@ -286,6 +294,17 @@ export function ProjectView({ project, onAddEntry, onDelete }: ProjectViewProps)
             </div>
           )}
         </div>
+
+        {/* Daily writing prompt */}
+        {!saved && !text.trim() && (
+          <button
+            onClick={() => { setText(dailyPrompt + "\n\n"); setSaved(false); }}
+            className="text-left w-full px-3 py-2.5 rounded-xl border border-dashed border-primary/30 text-xs text-muted-foreground hover:border-primary/60 hover:bg-primary/5 transition-all duration-200 group"
+          >
+            <span className="text-primary font-semibold mr-1.5">💡 Prompt del día:</span>
+            <span className="group-hover:text-foreground transition-colors">{dailyPrompt}</span>
+          </button>
+        )}
 
         {/* Editor */}
         <MarkdownEditor
@@ -350,6 +369,16 @@ export function ProjectView({ project, onAddEntry, onDelete }: ProjectViewProps)
           <Save className="w-4 h-4" strokeWidth={1.5} />
           {saved ? "Guardado" : "Guardar registro"}
         </button>
+
+        {/* XP celebration popup */}
+        {showXP && (
+          <div className="fixed bottom-8 right-8 z-50 pointer-events-none animate-xp-pop">
+            <div className="flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-primary text-primary-foreground shadow-lg">
+              <Zap className="w-4 h-4" strokeWidth={2} />
+              <span className="text-sm font-bold">+50 XP ganados</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Past entries */}

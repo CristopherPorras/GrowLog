@@ -94,7 +94,7 @@ export function PublicProfile({ projects, profile, isOwner = false, onUpdateProf
     setEditing(false);
   };
 
-  const handleGenerateBio = async () => {
+  const handleGenerateBio = async (autoSave = false) => {
     if (generatingBio || projects.length === 0) return;
     setGeneratingBio(true);
     try {
@@ -106,6 +106,9 @@ export function PublicProfile({ projects, profile, isOwner = false, onUpdateProf
         .join("\n\n");
       const generated = await generateBio(summary);
       setBio(generated);
+      if (autoSave && onUpdateProfile) {
+        await onUpdateProfile({ bio: generated });
+      }
     } catch {
       // silently fail, user can retry
     } finally {
@@ -196,11 +199,41 @@ export function PublicProfile({ projects, profile, isOwner = false, onUpdateProf
             </div>
             <p className="text-sm text-muted-foreground mt-1">@{profile.username}</p>
             {profile.bio ? (
-              <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">{profile.bio}</p>
+              <div className="mt-2">
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">{profile.bio}</p>
+                {isOwner && (
+                  <button
+                    onClick={() => handleGenerateBio(true)}
+                    disabled={generatingBio || projects.length === 0}
+                    className="mt-1.5 flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors mx-auto disabled:opacity-50"
+                  >
+                    {generatingBio ? (
+                      <div className="w-2.5 h-2.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    ) : (
+                      <Sparkles className="w-2.5 h-2.5" strokeWidth={1.5} />
+                    )}
+                    Regenerar con IA
+                  </button>
+                )}
+              </div>
             ) : isOwner ? (
-              <button onClick={() => setEditing(true)} className="text-xs text-primary mt-2 hover:underline">
-                + Agrega una bio
-              </button>
+              <div className="flex flex-col items-center gap-1.5 mt-3">
+                <button
+                  onClick={() => handleGenerateBio(true)}
+                  disabled={generatingBio || projects.length === 0}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-all disabled:opacity-50"
+                >
+                  {generatingBio ? (
+                    <div className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3 h-3" strokeWidth={1.5} />
+                  )}
+                  {generatingBio ? "Generando bio..." : "✨ Generar bio con IA"}
+                </button>
+                <button onClick={() => setEditing(true)} className="text-[10px] text-muted-foreground hover:underline">
+                  o escríbela tú mismo
+                </button>
+              </div>
             ) : null}
           </div>
         )}
