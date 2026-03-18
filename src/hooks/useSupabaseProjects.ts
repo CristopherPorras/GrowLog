@@ -180,30 +180,38 @@ export interface PublicProfileSummary {
   projectCount: number;
 }
 
-export async function fetchAllPublicProfiles(): Promise<PublicProfileSummary[]> {
-  const { data: profiles } = await supabase
+export async function fetchAllPublicProfiles(): Promise<{ profiles: PublicProfileSummary[]; error: string | null }> {
+  const { data: profiles, error: profilesError } = await supabase
     .from("profiles")
     .select("username, display_name, bio, user_id")
-    .not("username", "is", null)
-    .limit(60);
+    .order("created_at", { ascending: false })
+    .limit(100);
 
-  if (!profiles || profiles.length === 0) return [];
+  if (profilesError) {
+    console.error("[Explorar] Error profiles:", profilesError.message);
+    return { profiles: [], error: profilesError.message };
+  }
+
+  if (!profiles || profiles.length === 0) return { profiles: [], error: null };
 
   const userIds = profiles.map((p: any) => p.user_id);
 
-  const [{ data: entries }, { data: projects }] = await Promise.all([
+  const [{ data: entries, error: entriesError }, { data: projects, error: projectsError }] = await Promise.all([
     supabase.from("entries").select("user_id, date").in("user_id", userIds),
     supabase.from("projects").select("user_id").in("user_id", userIds),
   ]);
 
-  return profiles
+  if (entriesError) console.warn("[Explorar] Error entries:", entriesError.message);
+  if (projectsError) console.warn("[Explorar] Error projects:", projectsError.message);
+
+  const result = profiles
     .map((profile: any) => {
       const userEntries = (entries || []).filter((e: any) => e.user_id === profile.user_id);
       const userProjects = (projects || []).filter((p: any) => p.user_id === profile.user_id);
       const days = new Set(userEntries.map((e: any) => e.date.slice(0, 10))).size;
       return {
-        username: profile.username,
-        display_name: profile.display_name ?? profile.username,
+        username: profile.username ?? "",
+        display_name: profile.display_name ?? profile.username ?? "Usuario",
         bio: profile.bio ?? "",
         entryCount: userEntries.length,
         dayCount: days,
@@ -211,6 +219,8 @@ export async function fetchAllPublicProfiles(): Promise<PublicProfileSummary[]> 
       };
     })
     .filter((p: PublicProfileSummary) => p.username);
+
+  return { profiles: result, error: null };
 }
 
 // For public profile page
