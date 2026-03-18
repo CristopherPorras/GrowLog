@@ -166,7 +166,8 @@ export function useProfile() {
       .select("username, display_name, bio, role, location, website, github, linkedin, twitter, avatar_color, is_public")
       .eq("user_id", user.id)
       .maybeSingle()
-      .then(async ({ data }) => {
+      .then(async ({ data, error }) => {
+        if (error) console.warn("[useProfile] select error:", error.message);
         if (data) {
           setProfile(data as UserProfile);
         } else {

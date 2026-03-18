@@ -93,8 +93,8 @@ const Index = () => {
     if (viewingUsername) {
       return <UserProfileView username={viewingUsername} onBack={() => setViewingUsername(null)} />;
     }
-    if (showSettings && profile) {
-      return <SettingsView profile={profile} onUpdateProfile={updateProfile} />;
+    if (showSettings) {
+      return <SettingsView profile={profile ?? { username: "", display_name: "", bio: "" }} onUpdateProfile={updateProfile} />;
     }
     if (showStats) {
       return <StatsView projects={projects} />;
