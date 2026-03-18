@@ -4,13 +4,17 @@ import { fetchAllPublicProfiles, type PublicProfileSummary } from "@/hooks/useSu
 
 const FIX_SQL = `-- Ejecutar en Supabase → SQL Editor:
 
-CREATE POLICY IF NOT EXISTS "profiles_public_read"
+DROP POLICY IF EXISTS "profiles_public_read" ON profiles;
+DROP POLICY IF EXISTS "entries_public_read" ON entries;
+DROP POLICY IF EXISTS "projects_public_read" ON projects;
+
+CREATE POLICY "profiles_public_read"
   ON profiles FOR SELECT TO authenticated USING (true);
 
-CREATE POLICY IF NOT EXISTS "entries_public_read"
+CREATE POLICY "entries_public_read"
   ON entries FOR SELECT TO authenticated USING (true);
 
-CREATE POLICY IF NOT EXISTS "projects_public_read"
+CREATE POLICY "projects_public_read"
   ON projects FOR SELECT TO authenticated USING (true);`;
 
 interface ExploreViewProps {
