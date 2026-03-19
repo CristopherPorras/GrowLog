@@ -1,6 +1,7 @@
 import { BookOpen, Flame, Plus, Code2, LogOut, Sun, Moon, Compass, BarChart2, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/hooks/useSupabaseProjects";
+import { calculateStreak } from "@/hooks/useSupabaseProjects";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 
@@ -27,6 +28,8 @@ export function AppSidebar({ projects, activeProjectId, onSelectProject, onNewPr
   const xpToNext = 2 * level - 1;
   const xpPercent = Math.round((xpInLevel / xpToNext) * 100);
   const levelTitle = LEVEL_TITLES[Math.min(level, LEVEL_TITLES.length - 1)];
+  const { current: streak } = calculateStreak(projects);
+  const streakColor = streak === 0 ? "text-muted-foreground" : streak < 7 ? "text-blue-400" : streak < 30 ? "text-orange-400" : streak < 100 ? "text-red-500" : "text-yellow-400";
 
   return (
     <aside className="w-64 shrink-0 border-r border-border bg-sidebar h-screen flex flex-col">
@@ -43,20 +46,27 @@ export function AppSidebar({ projects, activeProjectId, onSelectProject, onNewPr
         </button>
       </div>
 
-      {/* Level / XP bar */}
-      <div className="px-4 py-3 border-b border-sidebar-border">
-        <div className="flex items-center justify-between mb-1.5">
+      {/* Level / XP bar + Streak */}
+      <div className="px-4 py-3 border-b border-sidebar-border space-y-2">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <span className="text-[11px] font-bold text-primary">Nv. {level}</span>
             <span className="text-[10px] text-muted-foreground">· {levelTitle}</span>
           </div>
-          <span className="text-[10px] text-muted-foreground tabular-nums">{xpInLevel}/{xpToNext} XP</span>
+          <div className="flex items-center gap-1.5">
+            <span className={cn("text-[11px] font-bold tabular-nums", streakColor)}>{streak}</span>
+            <Flame className={cn("w-3 h-3", streakColor)} strokeWidth={1.5} />
+          </div>
         </div>
         <div className="h-1.5 rounded-full bg-border overflow-hidden">
           <div
             className="h-full rounded-full progress-gradient transition-all duration-700"
             style={{ width: `${xpPercent}%` }}
           />
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-[9px] text-muted-foreground tabular-nums">{xpInLevel}/{xpToNext} XP</span>
+          <span className="text-[9px] text-muted-foreground">días de racha</span>
         </div>
       </div>
 

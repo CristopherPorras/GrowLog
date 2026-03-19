@@ -34,6 +34,38 @@ export interface UserProfile {
   is_public?: boolean;
 }
 
+export function calculateStreak(projects: Project[]): { current: number; longest: number; hasTodayEntry: boolean } {
+  const today = getToday();
+  const dateSet = new Set(projects.flatMap(p => p.entries.map(e => e.date.slice(0, 10))));
+  const hasTodayEntry = dateSet.has(today);
+  const allDates = Array.from(dateSet).sort();
+
+  if (allDates.length === 0) return { current: 0, longest: 0, hasTodayEntry: false };
+
+  // Longest streak
+  let longest = 1, temp = 1;
+  for (let i = 1; i < allDates.length; i++) {
+    const prev = new Date(allDates[i - 1] + "T12:00:00");
+    const curr = new Date(allDates[i] + "T12:00:00");
+    const diff = Math.round((curr.getTime() - prev.getTime()) / 86400000);
+    temp = diff === 1 ? temp + 1 : 1;
+    if (temp > longest) longest = temp;
+  }
+
+  // Current streak: go backwards from today (or yesterday if no entry today)
+  const d = new Date(today + "T12:00:00");
+  if (!hasTodayEntry) d.setDate(d.getDate() - 1);
+  let current = 0;
+  while (true) {
+    const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    if (!dateSet.has(dStr)) break;
+    current++;
+    d.setDate(d.getDate() - 1);
+  }
+
+  return { current, longest, hasTodayEntry };
+}
+
 export function getToday(): string {
   const d = new Date();
   const year = d.getFullYear();

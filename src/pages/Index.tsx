@@ -108,7 +108,7 @@ const Index = () => {
     if (activeProject) {
       return <ProjectView key={`${activeProject.id}-${getToday()}`} project={activeProject} onAddEntry={addEntry} onDelete={handleDelete} />;
     }
-    return <DashboardView projects={projects} onSelectProject={handleSelectProject} onNewProject={() => setDialogOpen(true)} />;
+    return <DashboardView projects={projects} onSelectProject={handleSelectProject} onNewProject={() => setDialogOpen(true)} profile={profile} />;
   };
 
   return (
