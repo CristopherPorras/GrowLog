@@ -103,7 +103,7 @@ const Index = () => {
       return <ExploreView onViewProfile={handleViewProfile} />;
     }
     if (showProfile && profile) {
-      return <PublicProfile projects={projects} profile={profile} isOwner onUpdateProfile={updateProfile} />;
+      return <PublicProfile projects={projects} profile={profile} isOwner onUpdateProfile={updateProfile} onOpenSettings={handleOpenSettings} />;
     }
     if (activeProject) {
       return <ProjectView key={`${activeProject.id}-${getToday()}`} project={activeProject} onAddEntry={addEntry} onDelete={handleDelete} />;
@@ -137,6 +137,7 @@ const Index = () => {
           onOpenStats={handleOpenStats}
           onOpenExplore={handleOpenExplore}
           onOpenSettings={handleOpenSettings}
+          profile={profile}
         />
       </div>
 

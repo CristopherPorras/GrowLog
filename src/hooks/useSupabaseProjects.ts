@@ -32,6 +32,7 @@ export interface UserProfile {
   twitter?: string;
   avatar_color?: string;
   is_public?: boolean;
+  username_changed_at?: string;
 }
 
 export function calculateStreak(projects: Project[]): { current: number; longest: number; hasTodayEntry: boolean } {
@@ -195,7 +196,7 @@ export function useProfile() {
 
     supabase
       .from("profiles")
-      .select("username, display_name, bio, role, location, website, github, linkedin, twitter, avatar_color, is_public")
+      .select("username, display_name, bio, role, location, website, github, linkedin, twitter, avatar_color, is_public, username_changed_at")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(async ({ data, error }) => {
@@ -320,7 +321,15 @@ export async function fetchPublicProfile(username: string) {
     profile: {
       username: (profile as any).username,
       display_name: (profile as any).display_name,
-      bio: (profile as any).bio,
+      bio: (profile as any).bio ?? "",
+      role: (profile as any).role ?? "",
+      location: (profile as any).location ?? "",
+      website: (profile as any).website ?? "",
+      github: (profile as any).github ?? "",
+      linkedin: (profile as any).linkedin ?? "",
+      twitter: (profile as any).twitter ?? "",
+      avatar_color: (profile as any).avatar_color ?? "#22c55e",
+      is_public: (profile as any).is_public ?? true,
     },
     projects: (projects || []).map((p: any) => ({
       id: p.id,

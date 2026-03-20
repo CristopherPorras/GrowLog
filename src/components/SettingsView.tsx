@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   User, MapPin, Link2, Github, Linkedin, Twitter, Save, Globe,
-  Briefcase, Shield, Mail, Key, Eye, EyeOff, Check, AlertTriangle,
+  Briefcase, Shield, Mail, Key, Eye, EyeOff, Check, AlertTriangle, Lock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -50,6 +50,13 @@ export function SettingsView({ profile, onUpdateProfile }: SettingsViewProps) {
   // Privacy
   const [isPublic, setIsPublic] = useState(profile.is_public ?? true);
 
+  // Username cooldown: 1 change per 30 days
+  const canChangeUsername = !profile.username_changed_at ||
+    (Date.now() - new Date(profile.username_changed_at).getTime()) >= 30 * 24 * 60 * 60 * 1000;
+  const daysUntilUsernameChange = profile.username_changed_at
+    ? Math.ceil(30 - (Date.now() - new Date(profile.username_changed_at).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
   // State
   const [saving, setSaving]             = useState(false);
   const [saved, setSaved]               = useState(false);
@@ -70,9 +77,8 @@ export function SettingsView({ profile, onUpdateProfile }: SettingsViewProps) {
   const handleSave = async () => {
     if (!validate()) return;
     setSaving(true);
-    await onUpdateProfile({
+    const updates: Parameters<typeof onUpdateProfile>[0] = {
       display_name: displayName.trim(),
-      username: username.trim().toLowerCase(),
       bio: bio.trim().slice(0, 300),
       role: role.trim().slice(0, 60),
       location: location.trim().slice(0, 60),
@@ -82,7 +88,14 @@ export function SettingsView({ profile, onUpdateProfile }: SettingsViewProps) {
       twitter: twitter.replace(/^@/, "").trim(),
       avatar_color: avatarColor,
       is_public: isPublic,
-    });
+    };
+    // Only change username if cooldown allows and it actually changed
+    const newUsername = username.trim().toLowerCase();
+    if (canChangeUsername && newUsername && newUsername !== profile.username) {
+      updates.username = newUsername;
+      updates.username_changed_at = new Date().toISOString();
+    }
+    await onUpdateProfile(updates);
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -174,16 +187,24 @@ export function SettingsView({ profile, onUpdateProfile }: SettingsViewProps) {
               />
             </Field>
 
-            <Field label="Usuario (@)" error={errors.username} hint="Solo letras minúsculas, números, _ o -">
+            <Field
+              label="Usuario (@)"
+              error={errors.username}
+              hint={canChangeUsername ? "Solo letras minúsculas, números, _ o -" : `Bloqueado · próximo cambio en ${daysUntilUsernameChange} días`}
+            >
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
                 <input
                   value={username}
-                  onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                  onChange={(e) => canChangeUsername && setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
                   maxLength={30}
                   placeholder="tuusuario"
-                  className={`${inputCls(!!errors.username)} pl-7`}
+                  disabled={!canChangeUsername}
+                  className={`${inputCls(!!errors.username)} pl-7 ${!canChangeUsername ? "opacity-60 cursor-not-allowed" : ""}`}
                 />
+                {!canChangeUsername && (
+                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
+                )}
               </div>
             </Field>
 
@@ -334,7 +355,8 @@ export function SettingsView({ profile, onUpdateProfile }: SettingsViewProps) {
   ADD COLUMN IF NOT EXISTS linkedin TEXT,
   ADD COLUMN IF NOT EXISTS twitter TEXT,
   ADD COLUMN IF NOT EXISTS avatar_color TEXT DEFAULT '#22c55e',
-  ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT true;`}
+  ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT true,
+  ADD COLUMN IF NOT EXISTS username_changed_at TIMESTAMPTZ;`}
             </pre>
           </div>
         </div>

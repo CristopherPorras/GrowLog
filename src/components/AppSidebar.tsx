@@ -1,6 +1,6 @@
-import { BookOpen, Flame, Plus, Code2, LogOut, Sun, Moon, Compass, BarChart2, Settings } from "lucide-react";
+import { Flame, Plus, Code2, LogOut, Sun, Moon, Compass, BarChart2, Settings, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Project } from "@/hooks/useSupabaseProjects";
+import type { Project, UserProfile } from "@/hooks/useSupabaseProjects";
 import { calculateStreak } from "@/hooks/useSupabaseProjects";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
@@ -14,11 +14,12 @@ interface AppSidebarProps {
   onOpenExplore: () => void;
   onOpenStats: () => void;
   onOpenSettings: () => void;
+  profile?: UserProfile | null;
 }
 
 const LEVEL_TITLES = ["", "Principiante", "Aprendiz", "Estudiante", "Constante", "Dedicado", "Experto", "Maestro"];
 
-export function AppSidebar({ projects, activeProjectId, onSelectProject, onNewProject, onOpenProfile, onOpenExplore, onOpenStats, onOpenSettings }: AppSidebarProps) {
+export function AppSidebar({ projects, activeProjectId, onSelectProject, onNewProject, onOpenProfile, onOpenExplore, onOpenStats, onOpenSettings, profile }: AppSidebarProps) {
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
@@ -150,8 +151,20 @@ export function AppSidebar({ projects, activeProjectId, onSelectProject, onNewPr
           onClick={onOpenProfile}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-all duration-200"
         >
-          <BookOpen className="w-4 h-4" strokeWidth={1.5} />
-          Mi Perfil
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0"
+            style={{ background: profile?.avatar_color ?? "#22c55e" }}
+          >
+            {profile?.display_name?.[0]?.toUpperCase() ?? profile?.username?.[0]?.toUpperCase() ?? <User className="w-3.5 h-3.5" />}
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <p className="text-[12px] font-medium text-foreground truncate leading-tight">
+              {profile?.display_name || "Mi Perfil"}
+            </p>
+            {profile?.username && (
+              <p className="text-[10px] text-muted-foreground truncate leading-tight">@{profile.username}</p>
+            )}
+          </div>
         </button>
         <button
           onClick={onOpenSettings}
