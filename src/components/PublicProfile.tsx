@@ -104,10 +104,13 @@ export function PublicProfile({ projects, profile, isOwner = false, onUpdateProf
         {/* Avatar + Name */}
         <div className="flex flex-col items-center gap-3 text-center">
           <div
-            className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-bold text-white select-none shadow-card"
-            style={{ background: profile.avatar_color ?? "#22c55e" }}
+            className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-bold text-white select-none shadow-card overflow-hidden"
+            style={{ background: profile.avatar_image ? undefined : (profile.avatar_color ?? "#22c55e") }}
           >
-            {(profile.display_name?.[0] ?? profile.username?.[0] ?? "?").toUpperCase()}
+            {profile.avatar_image
+              ? <img src={profile.avatar_image} alt="avatar" className="w-full h-full object-cover" />
+              : (profile.display_name?.[0] ?? profile.username?.[0] ?? "?").toUpperCase()
+            }
           </div>
 
           <div>

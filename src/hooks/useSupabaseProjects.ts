@@ -31,6 +31,7 @@ export interface UserProfile {
   linkedin?: string;
   twitter?: string;
   avatar_color?: string;
+  avatar_image?: string;
   is_public?: boolean;
   username_changed_at?: string;
 }
@@ -196,13 +197,13 @@ export function useProfile() {
 
     supabase
       .from("profiles")
-      .select("username, display_name, bio, role, location, website, github, linkedin, twitter, avatar_color, is_public, username_changed_at")
+      .select("username, display_name, bio, role, location, website, github, linkedin, twitter, avatar_color, avatar_image, is_public, username_changed_at")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(async ({ data, error }) => {
         if (error) console.warn("[useProfile] select error:", error.message);
         if (data) {
-          setProfile(data as UserProfile);
+          setProfile(data as unknown as UserProfile);
         } else {
           // Auto-create profile from auth data if it doesn't exist
           const emailPrefix = user.email?.split("@")[0] ?? "user";
@@ -214,8 +215,8 @@ export function useProfile() {
             display_name: displayName,
             bio: "",
           };
-          const { data: created } = await supabase.from("profiles").upsert(newProfile).select().maybeSingle();
-          if (created) setProfile(created as UserProfile);
+          const { data: created } = await supabase.from("profiles").upsert(newProfile as any).select().maybeSingle();
+          if (created) setProfile(created as unknown as UserProfile);
         }
       });
   }, [user]);
@@ -226,7 +227,11 @@ export function useProfile() {
     if (updates.username) {
       updates.username = updates.username.replace(/[^a-z0-9_-]/gi, "").toLowerCase().slice(0, 30);
     }
-    await supabase.from("profiles").upsert({ user_id: user.id, ...updates });
+    const { error } = await supabase.from("profiles").upsert({ user_id: user.id, ...updates } as any, { onConflict: "user_id" });
+    if (error) {
+      console.error("[updateProfile] upsert error:", error.message, error.details);
+      throw error;
+    }
     setProfile((prev) => (prev ? { ...prev, ...updates } : null));
   }, [user]);
 
@@ -329,6 +334,7 @@ export async function fetchPublicProfile(username: string) {
       linkedin: (profile as any).linkedin ?? "",
       twitter: (profile as any).twitter ?? "",
       avatar_color: (profile as any).avatar_color ?? "#22c55e",
+      avatar_image: (profile as any).avatar_image ?? "",
       is_public: (profile as any).is_public ?? true,
     },
     projects: (projects || []).map((p: any) => ({

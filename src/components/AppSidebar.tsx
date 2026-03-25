@@ -152,10 +152,13 @@ export function AppSidebar({ projects, activeProjectId, onSelectProject, onNewPr
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-all duration-200"
         >
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0"
-            style={{ background: profile?.avatar_color ?? "#22c55e" }}
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0 overflow-hidden"
+            style={{ background: profile?.avatar_image ? undefined : (profile?.avatar_color ?? "#22c55e") }}
           >
-            {profile?.display_name?.[0]?.toUpperCase() ?? profile?.username?.[0]?.toUpperCase() ?? <User className="w-3.5 h-3.5" />}
+            {profile?.avatar_image
+              ? <img src={profile.avatar_image} alt="avatar" className="w-full h-full object-cover" />
+              : (profile?.display_name?.[0]?.toUpperCase() ?? profile?.username?.[0]?.toUpperCase() ?? <User className="w-3.5 h-3.5" />)
+            }
           </div>
           <div className="flex-1 min-w-0 text-left">
             <p className="text-[12px] font-medium text-foreground truncate leading-tight">

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   User, MapPin, Link2, Github, Linkedin, Twitter, Save, Globe,
-  Briefcase, Shield, Mail, Key, Eye, EyeOff, Check, AlertTriangle, Lock,
+  Briefcase, Shield, Mail, Key, Eye, EyeOff, Check, Lock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,14 @@ import type { UserProfile } from "@/hooks/useSupabaseProjects";
 
 const AVATAR_COLORS = [
   "#22c55e", "#3b82f6", "#a855f7", "#f97316", "#ec4899", "#14b8a6",
+];
+
+const AVATAR_IMAGES = [
+  "/avatars/gata.png",
+  "/avatars/gato.png",
+  "/avatars/nutria.png",
+  "/avatars/pastor_aleman.png",
+  "/avatars/zorro.png",
 ];
 
 function isValidUrl(url: string): boolean {
@@ -41,6 +49,7 @@ export function SettingsView({ profile, onUpdateProfile }: SettingsViewProps) {
   const [location, setLocation]       = useState(profile.location ?? "");
   const [website, setWebsite]         = useState(profile.website ?? "");
   const [avatarColor, setAvatarColor] = useState(profile.avatar_color ?? AVATAR_COLORS[0]);
+  const [avatarImage, setAvatarImage] = useState(profile.avatar_image ?? "");
 
   // Redes fields
   const [github, setGithub]     = useState(profile.github ?? "");
@@ -87,6 +96,7 @@ export function SettingsView({ profile, onUpdateProfile }: SettingsViewProps) {
       linkedin: linkedin.trim(),
       twitter: twitter.replace(/^@/, "").trim(),
       avatar_color: avatarColor,
+      ...(avatarImage ? { avatar_image: avatarImage } : {}),
       is_public: isPublic,
     };
     // Only change username if cooldown allows and it actually changed
@@ -95,10 +105,15 @@ export function SettingsView({ profile, onUpdateProfile }: SettingsViewProps) {
       updates.username = newUsername;
       updates.username_changed_at = new Date().toISOString();
     }
-    await onUpdateProfile(updates);
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    try {
+      await onUpdateProfile(updates);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err: any) {
+      setErrors({ general: `Error al guardar: ${err?.message ?? "intenta de nuevo"}` });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handlePasswordReset = async () => {
@@ -149,26 +164,57 @@ export function SettingsView({ profile, onUpdateProfile }: SettingsViewProps) {
           {/* Avatar */}
           <div className="p-5 rounded-2xl bg-card border border-border shadow-card space-y-4">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Avatar</p>
-            <div className="flex items-center gap-5">
+            <div className="flex items-start gap-5">
+              {/* Preview */}
               <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white select-none shrink-0 transition-colors duration-300"
-                style={{ background: avatarColor }}
+                className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white select-none shrink-0 transition-all duration-300 overflow-hidden"
+                style={{ background: avatarImage ? undefined : avatarColor }}
               >
-                {(displayName?.[0] ?? "?").toUpperCase()}
+                {avatarImage
+                  ? <img src={avatarImage} alt="avatar" className="w-full h-full object-cover" />
+                  : (displayName?.[0] ?? "?").toUpperCase()
+                }
               </div>
-              <div className="flex flex-wrap gap-2">
-                {AVATAR_COLORS.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => setAvatarColor(color)}
-                    className="w-8 h-8 rounded-full transition-all duration-200 hover:scale-110 ring-offset-2 ring-offset-card"
-                    style={{
-                      background: color,
-                      boxShadow: avatarColor === color ? `0 0 0 2px ${color}` : "none",
-                      outline: avatarColor === color ? "2px solid white" : "none",
-                    }}
-                  />
-                ))}
+
+              <div className="space-y-3">
+                {/* Color swatches */}
+                <div>
+                  <p className="text-[10px] text-muted-foreground mb-1.5">Color</p>
+                  <div className="flex flex-wrap gap-2">
+                    {AVATAR_COLORS.map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => { setAvatarColor(color); setAvatarImage(""); }}
+                        className="w-8 h-8 rounded-full transition-all duration-200 hover:scale-110 ring-offset-2 ring-offset-card"
+                        style={{
+                          background: color,
+                          boxShadow: (!avatarImage && avatarColor === color) ? `0 0 0 2px ${color}` : "none",
+                          outline: (!avatarImage && avatarColor === color) ? "2px solid white" : "none",
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Avatar image picker */}
+                <div>
+                  <p className="text-[10px] text-muted-foreground mb-1.5">Avatares</p>
+                  <div className="flex flex-wrap gap-2">
+                    {AVATAR_IMAGES.map((img) => (
+                      <button
+                        key={img}
+                        onClick={() => setAvatarImage(avatarImage === img ? "" : img)}
+                        className="w-10 h-10 rounded-xl overflow-hidden transition-all duration-200 hover:scale-105 ring-offset-2 ring-offset-card"
+                        style={{
+                          outline: avatarImage === img ? "2px solid hsl(var(--primary))" : "none",
+                        }}
+                        title={img.split("/").pop()?.replace(".png", "").replace(/_/g, " ")}
+                      >
+                        <img src={img} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -338,27 +384,6 @@ export function SettingsView({ profile, onUpdateProfile }: SettingsViewProps) {
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2">
-            <p className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} /> Columnas adicionales en Supabase
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Para guardar rol, ubicación, web y redes sociales ejecutá este SQL en{" "}
-              <span className="font-semibold text-foreground">Supabase → SQL Editor</span>:
-            </p>
-            <pre className="text-[10px] font-mono bg-card rounded-lg p-3 overflow-x-auto text-foreground border border-border leading-relaxed">
-{`ALTER TABLE profiles
-  ADD COLUMN IF NOT EXISTS role TEXT,
-  ADD COLUMN IF NOT EXISTS location TEXT,
-  ADD COLUMN IF NOT EXISTS website TEXT,
-  ADD COLUMN IF NOT EXISTS github TEXT,
-  ADD COLUMN IF NOT EXISTS linkedin TEXT,
-  ADD COLUMN IF NOT EXISTS twitter TEXT,
-  ADD COLUMN IF NOT EXISTS avatar_color TEXT DEFAULT '#22c55e',
-  ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT true,
-  ADD COLUMN IF NOT EXISTS username_changed_at TIMESTAMPTZ;`}
-            </pre>
-          </div>
         </div>
       )}
 
@@ -389,20 +414,25 @@ export function SettingsView({ profile, onUpdateProfile }: SettingsViewProps) {
 
       {/* Save button (not shown for Cuenta tab) */}
       {activeTab !== "cuenta" && (
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium transition-all duration-300 hover:shadow-card-hover hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
-        >
-          {saving ? (
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : saved ? (
-            <Check className="w-4 h-4" strokeWidth={2} />
-          ) : (
-            <Save className="w-4 h-4" strokeWidth={1.5} />
+        <>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium transition-all duration-300 hover:shadow-card-hover hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
+          >
+            {saving ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : saved ? (
+              <Check className="w-4 h-4" strokeWidth={2} />
+            ) : (
+              <Save className="w-4 h-4" strokeWidth={1.5} />
+            )}
+            {saving ? "Guardando..." : saved ? "¡Guardado!" : "Guardar cambios"}
+          </button>
+          {errors.general && (
+            <p className="text-xs text-red-500 text-center mt-1">{errors.general}</p>
           )}
-          {saving ? "Guardando..." : saved ? "¡Guardado!" : "Guardar cambios"}
-        </button>
+        </>
       )}
     </div>
   );
